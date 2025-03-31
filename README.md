@@ -1,7 +1,13 @@
 # Log Monitoring Application
 
-## Start the app
+## Build the app
 
 ```sh
-go run ./cmd/app
+go build ./cmd/app
+```
+
+## Run the app
+
+```sh
+./app data/logs.log
 ```
