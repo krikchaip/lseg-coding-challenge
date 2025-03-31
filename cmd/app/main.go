@@ -1,11 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/krikchaip/lseg-coding-challenge/internal/core"
 	"github.com/krikchaip/lseg-coding-challenge/internal/model"
@@ -22,41 +19,20 @@ func main() {
 	defer file.Close()
 
 	for record := range readCSVLines(file) {
-		var t model.Task
+		timestamp, description, entry, pid := record[0], record[1], record[2], record[3]
 
-		t.Description = record[1]
-
-		pid, err := strconv.Atoi(record[3])
+		tl, err := model.NewTaskLogFromStrings(
+			timestamp,
+			description,
+			strings.TrimSpace(entry),
+			pid,
+		)
+		// ignore the current line if it is somehow incorrect
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
-		t.Pid = pid
-
-		command := strings.TrimSpace(record[2])
-		switch command {
-		case "START":
-			start, err := time.Parse(model.TIMESTAMP_FORMAT, record[0])
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-
-			t.StartedAt = start
-		case "END":
-			end, err := time.Parse(model.TIMESTAMP_FORMAT, record[0])
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-
-			t.EndedAt = end
-		default:
-			log.Println(fmt.Errorf("Unknown command %q", command))
-			continue
-		}
-
-		tm.Append(t)
+		tm.Append(model.NewTaskFromLog(tl))
 	}
 }
