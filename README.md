@@ -3,7 +3,7 @@
 ## Build the app
 
 ```sh
-go build ./cmd/app
+make
 ```
 
 ## Run the app
