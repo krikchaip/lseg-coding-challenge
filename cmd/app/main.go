@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -83,13 +82,12 @@ func (this *TaskMonitor) popTask(t *model.Task) {
 	delete(this.pendingTasks, t.Description)
 }
 
+const LOGFILE_PATH = "data/logs.log"
+
 func main() {
 	var tm TaskMonitor
 
-	file, err := os.Open("data/logs.log")
-	if err != nil {
-		log.Fatal(err)
-	}
+	file := readFile(LOGFILE_PATH)
 	defer file.Close()
 
 	r := csv.NewReader(file)
