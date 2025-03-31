@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	TIME_FORMAT  = "15:04:05"
 	LOGFILE_PATH = "data/logs.log"
 )
 
@@ -38,7 +37,7 @@ func main() {
 		command := strings.TrimSpace(record[2])
 		switch command {
 		case "START":
-			start, err := time.Parse(TIME_FORMAT, record[0])
+			start, err := time.Parse(model.TIMESTAMP_FORMAT, record[0])
 			if err != nil {
 				log.Println(err)
 				continue
@@ -46,7 +45,7 @@ func main() {
 
 			t.StartedAt = start
 		case "END":
-			end, err := time.Parse(TIME_FORMAT, record[0])
+			end, err := time.Parse(model.TIMESTAMP_FORMAT, record[0])
 			if err != nil {
 				log.Println(err)
 				continue
