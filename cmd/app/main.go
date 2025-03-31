@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
-	"io"
 	"log"
 	"strconv"
 	"strings"
@@ -90,20 +88,7 @@ func main() {
 	file := readFile(LOGFILE_PATH)
 	defer file.Close()
 
-	r := csv.NewReader(file)
-
-	for {
-		record, err := r.Read()
-
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
+	for record := range readCSVLines(file) {
 		var t model.Task
 
 		t.Description = record[1]
