@@ -1,75 +1,82 @@
 package core
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/krikchaip/lseg-coding-challenge/internal/model"
 )
 
 type TaskMonitor struct {
-	pendingTasks map[string]*model.Task
+	reporter model.TaskReporter
+
+	pendingEntries map[int]model.TaskLog
 }
 
-func (this *TaskMonitor) Append(t model.Task) {
-	pt, ok := this.pendingTasks[t.Description]
+func NewTaskMonitor(reporter model.TaskReporter) *TaskMonitor {
+	return &TaskMonitor{
+		reporter: reporter,
+
+		pendingEntries: make(map[int]model.TaskLog),
+	}
+}
+
+func (this *TaskMonitor) AppendLog(tl model.TaskLog) error {
+	switch tl.Entry {
+	case model.EntryStart:
+		return this.addEntry(tl)
+	case model.EntryEnd:
+		task, err := this.closeEntry(tl)
+		if err != nil {
+			return err
+		}
+
+		this.reportTask(task)
+	}
+
+	return nil
+}
+
+func (this *TaskMonitor) addEntry(tl model.TaskLog) error {
+	if this.pendingEntries == nil {
+		this.pendingEntries = make(map[int]model.TaskLog)
+	}
+
+	entry, ok := this.pendingEntries[tl.PID]
 
 	if !ok {
-		this.addNewTask(t)
-		return
+		this.pendingEntries[tl.PID] = tl
+		return nil
 	}
 
-	if !t.StartedAt.IsZero() {
-		log.Printf("START record for task %q already existed.\n", t.Description)
-		return
-	}
-
-	pt.EndedAt = t.EndedAt
-
-	this.popTask(pt)
+	return fmt.Errorf("START entry for task %d is already existed.\n", entry.PID)
 }
 
-func (this *TaskMonitor) addNewTask(t model.Task) {
-	if t.StartedAt.IsZero() {
-		log.Printf("START record not found for task %q.\n", t.Description)
-		return
+func (this *TaskMonitor) closeEntry(tl model.TaskLog) (model.Task, error) {
+	var task model.Task
+
+	entry, ok := this.pendingEntries[tl.PID]
+
+	if !ok {
+		return task, fmt.Errorf("START entry for task %d is missing.\n", entry.PID)
 	}
 
-	if this.pendingTasks == nil {
-		this.pendingTasks = map[string]*model.Task{t.Description: &t}
-		return
-	}
+	task.Description = entry.Description
+	task.Pid = entry.PID
+	task.StartedAt = entry.Timestamp
+	task.EndedAt = tl.Timestamp
 
-	this.pendingTasks[t.Description] = &t
+	delete(this.pendingEntries, entry.PID)
+
+	return task, nil
 }
 
-func (this *TaskMonitor) popTask(t *model.Task) {
-	if t.StartedAt.IsZero() {
-		log.Printf("START record is missing for task %q.\n", t.Description)
+func (this *TaskMonitor) reportTask(t model.Task) {
+	switch minsTaken := t.EndedAt.Sub(t.StartedAt).Minutes(); {
+	case minsTaken <= 5:
 		return
+	case 5 < minsTaken && minsTaken <= 10:
+		this.reporter.Warn(t, minsTaken)
+	case minsTaken > 10:
+		this.reporter.Error(t, minsTaken)
 	}
-
-	if t.EndedAt.IsZero() {
-		log.Printf("END record is missing for task %q.\n", t.Description)
-		return
-	}
-
-	minsTaken := t.EndedAt.Sub(t.StartedAt).Minutes()
-
-	if 5 < minsTaken && minsTaken <= 10 {
-		log.Printf(
-			"[WARNING] task %q, pid %d took %.0fmins to complete.",
-			t.Description,
-			t.Pid,
-			minsTaken,
-		)
-	} else if minsTaken > 10 {
-		log.Printf(
-			"[ERROR] task %q, pid %d took %.0fmins to complete.",
-			t.Description,
-			t.Pid,
-			minsTaken,
-		)
-	}
-
-	delete(this.pendingTasks, t.Description)
 }

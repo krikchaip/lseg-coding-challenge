@@ -33,6 +33,8 @@ func main() {
 			continue
 		}
 
-		tm.Append(model.NewTaskFromLog(tl))
+		if err := tm.AppendLog(tl); err != nil {
+			log.Println(err)
+		}
 	}
 }
