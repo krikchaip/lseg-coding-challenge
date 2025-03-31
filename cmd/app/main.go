@@ -9,22 +9,17 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/krikchaip/lseg-coding-challenge/internal/model"
 )
 
 const TIME_FORMAT = "15:04:05"
 
-type Task struct {
-	Description string
-	Pid         int
-	StartedAt   time.Time
-	EndedAt     time.Time
-}
-
 type TaskMonitor struct {
-	pendingTasks map[string]*Task
+	pendingTasks map[string]*model.Task
 }
 
-func (this *TaskMonitor) Append(t Task) {
+func (this *TaskMonitor) Append(t model.Task) {
 	pt, ok := this.pendingTasks[t.Description]
 
 	if !ok {
@@ -42,21 +37,21 @@ func (this *TaskMonitor) Append(t Task) {
 	this.popTask(pt)
 }
 
-func (this *TaskMonitor) addNewTask(t Task) {
+func (this *TaskMonitor) addNewTask(t model.Task) {
 	if t.StartedAt.IsZero() {
 		log.Printf("START record not found for task %q.\n", t.Description)
 		return
 	}
 
 	if this.pendingTasks == nil {
-		this.pendingTasks = map[string]*Task{t.Description: &t}
+		this.pendingTasks = map[string]*model.Task{t.Description: &t}
 		return
 	}
 
 	this.pendingTasks[t.Description] = &t
 }
 
-func (this *TaskMonitor) popTask(t *Task) {
+func (this *TaskMonitor) popTask(t *model.Task) {
 	if t.StartedAt.IsZero() {
 		log.Printf("START record is missing for task %q.\n", t.Description)
 		return
@@ -111,7 +106,7 @@ func main() {
 			continue
 		}
 
-		var t Task
+		var t model.Task
 
 		t.Description = record[1]
 
