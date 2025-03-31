@@ -37,7 +37,8 @@ func main() {
 		}
 
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		var t Task
@@ -46,7 +47,8 @@ func main() {
 
 		pid, err := strconv.Atoi(record[3])
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		t.Pid = pid
@@ -56,19 +58,22 @@ func main() {
 		case "START":
 			start, err := time.Parse(TIME_FORMAT, record[0])
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				continue
 			}
 
 			t.StartedAt = start
 		case "END":
 			end, err := time.Parse(TIME_FORMAT, record[0])
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				continue
 			}
 
 			t.EndedAt = end
 		default:
-			log.Fatal(fmt.Errorf("Unknown command %q", command))
+			log.Println(fmt.Errorf("Unknown command %q", command))
+			continue
 		}
 
 		fmt.Println(t)
