@@ -13,7 +13,7 @@ const (
 )
 
 func main() {
-	var tm core.TaskMonitor
+	tm := core.NewTaskMonitor(consoleReporter)
 
 	file := readFile(LOGFILE_PATH)
 	defer file.Close()
