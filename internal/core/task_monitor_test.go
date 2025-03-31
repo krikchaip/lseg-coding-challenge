@@ -56,6 +56,32 @@ func TestTaskMonitor(t *testing.T) {
 			t.Error("expect reporter.Error() not to be called.")
 		}
 	})
+
+	t.Run("Error if a job took > 10mins", func(t *testing.T) {
+		var reporter TestReporter
+
+		timestamp := toTimestamp("00:00:00")
+		monitor := core.NewTaskMonitor(&reporter)
+
+		monitor.AppendLog(model.TaskLog{
+			PID:       1,
+			Entry:     model.EntryStart,
+			Timestamp: timestamp,
+		})
+		monitor.AppendLog(model.TaskLog{
+			PID:       1,
+			Entry:     model.EntryEnd,
+			Timestamp: timestamp.Add(11 * time.Minute),
+		})
+
+		if reporter.WarnCalled {
+			t.Error("expect reporter.Warn() not to be called.")
+		}
+
+		if !reporter.ErrorCalled {
+			t.Error("expect reporter.Error() to be called.")
+		}
+	})
 }
 
 func toTimestamp(t string) time.Time {
