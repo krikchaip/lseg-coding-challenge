@@ -8,14 +8,10 @@ import (
 	"github.com/krikchaip/lseg-coding-challenge/internal/model"
 )
 
-const (
-	LOGFILE_PATH = "data/logs.log"
-)
-
 func main() {
 	tm := core.NewTaskMonitor(consoleReporter)
 
-	file := readFile(LOGFILE_PATH)
+	file := readFile(args.Filepath)
 	defer file.Close()
 
 	for record := range readCSVLines(file) {
