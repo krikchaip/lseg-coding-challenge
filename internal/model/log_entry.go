@@ -16,6 +16,6 @@ func ToLogEntry(s string) (LogEntry, error) {
 	case EntryEnd:
 		return EntryEnd, nil
 	default:
-		return "", fmt.Errorf("Unknown emtry %q", s)
+		return "", fmt.Errorf("Unknown entry %q.\n", s)
 	}
 }
